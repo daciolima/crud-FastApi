@@ -1,1 +1,1 @@
-from .schemas import PostSchema
+from .posts_schemas import PostSchema, ShowPostsSchema

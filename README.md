@@ -27,7 +27,6 @@
 #### comandos o fastapi
 ```shell
 pip install fastapi\[all]
-uvicorn server:app --reload
 
 ```
 
