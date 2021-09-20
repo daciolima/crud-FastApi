@@ -6,16 +6,18 @@ from src.models import User
 from sqlalchemy.orm import Session
 from config.database import session_db
 
-routes_custom_users = APIRouter()
+routes_users = APIRouter(
+    tags=["Users"]
+)
 
 
-@routes_custom_users.get('/users/all', status_code=status.HTTP_200_OK, response_model=List[ShowUsersSchema], tags=["Users"])
+@routes_users.get('/users/all', status_code=status.HTTP_200_OK, response_model=List[ShowUsersSchema])
 def users_all(db: Session = Depends(session_db)):
     users = db.query(User).all()
     return users
 
 
-@routes_custom_users.get('/users/{id}', status_code=200, response_model=ShowUsersSchema, tags=["Users"])
+@routes_users.get('/users/{id}', status_code=200, response_model=ShowUsersSchema)
 async def user_id(id, db: Session = Depends(session_db)):
     user = db.query(User).filter(User.id == id).first()
     if not user:
@@ -23,7 +25,7 @@ async def user_id(id, db: Session = Depends(session_db)):
     return user
 
 
-@routes_custom_users.post('/users', status_code=status.HTTP_201_CREATED, response_model=ShowUsersSchema, tags=["Users"])
+@routes_users.post('/users', status_code=status.HTTP_201_CREATED, response_model=ShowUsersSchema)
 async def create_user(user: UserSchema, db: Session = Depends(session_db)):
     new_user = User(
         name=user.name,
@@ -37,7 +39,7 @@ async def create_user(user: UserSchema, db: Session = Depends(session_db)):
     return new_user
 
 
-@routes_custom_users.put("/users/{id}", status_code=status.HTTP_202_ACCEPTED, response_model=ShowUsersSchema, tags=["Users"])
+@routes_users.put("/users/{id}", status_code=status.HTTP_202_ACCEPTED, response_model=ShowUsersSchema)
 async def update_post(id, user: UserSchema, db: Session = Depends(session_db)):
     result = db.query(User).filter(User.id == id)
     if not result.first():
@@ -47,7 +49,7 @@ async def update_post(id, user: UserSchema, db: Session = Depends(session_db)):
     return {"message": f"Usuário id {id} alterado com sucesso."}, {"data": user}
 
 
-@routes_custom_users.delete('/users/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=["Users"])
+@routes_users.delete('/users/{id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(id, db: Session = Depends(session_db)):
     user = db.query(User).filter(User.id == id)
     if not user:
