@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.routes import routes_users, routes_posts, routes_home
+from src.routes import routes_users, routes_posts, routes_home, routes_auth
 from src.models import models
 from config.database import engine
 
@@ -17,6 +17,7 @@ app.add_middleware(
 
 
 # Include routes Blog
+app.include_router(routes_auth)
 app.include_router(routes_home)
 app.include_router(routes_users)
 app.include_router(routes_posts)

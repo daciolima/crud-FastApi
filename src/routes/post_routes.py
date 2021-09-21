@@ -1,9 +1,10 @@
 from typing import List
 from fastapi import APIRouter, Depends, status, Response, HTTPException, Request as RequestCuston
-from src.schemas import PostSchema, ShowPostsSchema
-from src.models import Post
 from sqlalchemy.orm import Session
+from src.schemas import PostSchema, ShowPostsSchema
+from src.repository import post_repository
 from config.database import session_db
+
 
 routes_posts = APIRouter(
     tags=["Posts"]
@@ -11,49 +12,27 @@ routes_posts = APIRouter(
 
 
 @routes_posts.get('/blog/all', status_code=status.HTTP_200_OK, response_model=List[ShowPostsSchema])
-def post_all(db: Session = Depends(session_db)):
-    posts = db.query(Post).all()
-    return posts
+async def post_all(db: Session = Depends(session_db)):
+    return post_repository.post_all(db)
 
 
 @routes_posts.get('/blog/{id}', status_code=200, response_model=ShowPostsSchema)
 async def post_id(id, db: Session = Depends(session_db)):
-    post = db.query(Post).filter(Post.id == id).first()
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Nenhum post encontrado com o id {id}.")
-    return post
+    return post_repository.post_id(id, db)
 
 
 @routes_posts.post('/blog', status_code=status.HTTP_201_CREATED, response_model=ShowPostsSchema)
 async def create_post(post: PostSchema, db: Session = Depends(session_db)):
-    new_post = Post(
-        title=post.title,
-        body=post.body,
-        user_id=post.user_id
-    )
-    db.add(new_post)
-    db.commit()
-    db.refresh(new_post)
-    return new_post
+    return post_repository.create_post(post, db)
 
 
-@routes_posts.put("/blog/{id}", status_code=status.HTTP_202_ACCEPTED, response_model=ShowPostsSchema)
+@routes_posts.put("/blog/{id}", status_code=status.HTTP_202_ACCEPTED)
 async def update_post(id, post: PostSchema, db: Session = Depends(session_db)):
-    result = db.query(Post).filter(Post.id == id)
-    if not result.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Nenhum post encontrado com o id {id}.")
-    result.update({'title': post.title, 'body': post.body})
-    db.commit()
-    return {"message": f"Post id {id} alterado com sucesso."}, {"data": post}
+    return post_repository.update_post(id, post, db)
 
 
 @routes_posts.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id, db: Session = Depends(session_db)):
-    post = db.query(Post).filter(Post.id == id)
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Nenhum post encontrado com o id {id}.")
+    return post_repository.delete_post(id, db)
 
-    post.delete(synchronize_session=False)
-    db.commit()
-    return {"data": f"Post excluido com sucesso"}
 
